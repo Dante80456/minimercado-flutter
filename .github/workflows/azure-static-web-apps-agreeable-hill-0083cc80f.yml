@@ -1,40 +1,35 @@
-name: Azure Static Web Apps CI/CD
+name: Deploy Flutter Web to Azure Static Web Apps
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build_and_deploy_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
-      - name: Set up Flutter
+      - uses: actions/checkout@v3
+        
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.9.0'  
+          flutter-version: '3.16.0'  # ✅ Versión estable actual
+          channel: 'stable'
+          
       - name: Install dependencies
         run: flutter pub get
+        
       - name: Build Flutter Web
-        run: flutter build web --release
-      - name: Build And Deploy
+        run: flutter build web --release --web-renderer html
+        
+      - name: Deploy to Azure Static Web Apps
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "/"
+          app_location: "build/web"
           api_location: ""
-          output_location: "build/web"
-
-
+          output_location: ""
